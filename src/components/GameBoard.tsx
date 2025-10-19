@@ -1,19 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { GridLine } from "./GridLine";
 import { SphereMesh } from "./SphereMesh";
 import { CubeMesh } from "./CubeMesh";
 import { WinnerLine } from "./WinnerLine";
 import { ThreeEvent } from "@react-three/fiber";
+import { AIPlayer } from "@/lib/aiPlayer";
 
 type Player = "sphere" | "cube" | null;
 type Board = Player[][];
 
 interface GameBoardProps {
   onGameStateChange: (winner: Player, isTie: boolean, currentPlayer: Player) => void;
+  gameMode: "friend" | "computer";
 }
 
-export const GameBoard = ({ onGameStateChange }: GameBoardProps) => {
-  const [board, setBoard] = useState<Board>([
+export const GameBoard = ({ onGameStateChange, gameMode }: GameBoardProps) => {
+    const [board, setBoard] = useState<Board>([
     [null, null, null],
     [null, null, null],
     [null, null, null],
@@ -21,6 +23,15 @@ export const GameBoard = ({ onGameStateChange }: GameBoardProps) => {
   const [currentPlayer, setCurrentPlayer] = useState<"sphere" | "cube">("sphere");
   const [winner, setWinner] = useState<Player>(null);
   const [winnerLine, setWinnerLine] = useState<{ start: [number, number, number]; end: [number, number, number] } | null>(null);
+  const [isAiThinking, setIsAiThinking] = useState(false);
+  const aiPlayerRef = useRef<AIPlayer | null>(null);
+
+  // Initialize AI player
+  useEffect(() => {
+    if (gameMode === "computer") {
+      aiPlayerRef.current = new AIPlayer("cube", "sphere");
+    }
+  }, [gameMode]);
 
   const checkWinner = (newBoard: Board): Player => {
     // Check rows
@@ -58,9 +69,27 @@ export const GameBoard = ({ onGameStateChange }: GameBoardProps) => {
     return newBoard.every(row => row.every(cell => cell !== null));
   };
 
-  const handleClick = (event: ThreeEvent<MouseEvent>, row: number, col: number) => {
-    event.stopPropagation();
-    
+    // AI move logic
+  useEffect(() => {
+    if (gameMode === "computer" && currentPlayer === "cube" && !winner && !isAiThinking) {
+      setIsAiThinking(true);
+      
+      // Add delay to make it feel more natural
+      const delay = setTimeout(() => {
+        if (aiPlayerRef.current) {
+          const bestMove = aiPlayerRef.current.getBestMove(board, "medium");
+          if (bestMove) {
+            makeMove(bestMove.row, bestMove.col);
+          }
+        }
+        setIsAiThinking(false);
+      }, 800); // 800ms delay for AI thinking
+
+      return () => clearTimeout(delay);
+    }
+  }, [currentPlayer, gameMode, board, winner, isAiThinking]);
+
+  const makeMove = (row: number, col: number) => {
     if (winner || board[row][col]) return;
 
     const newBoard = board.map(r => [...r]);
@@ -80,6 +109,16 @@ export const GameBoard = ({ onGameStateChange }: GameBoardProps) => {
       setCurrentPlayer(nextPlayer);
       onGameStateChange(null, false, nextPlayer);
     }
+  };
+
+  const handleClick = (event: ThreeEvent<MouseEvent>, row: number, col: number) => {
+    event.stopPropagation();
+    
+    // In computer mode, only allow human (sphere) to click
+    if (gameMode === "computer" && currentPlayer === "cube") return;
+    if (isAiThinking) return;
+    
+    makeMove(row, col);
   };
 
   const resetGame = () => {

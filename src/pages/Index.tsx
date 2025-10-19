@@ -4,10 +4,12 @@ import { OrbitControls, Environment } from "@react-three/drei";
 import { GameBoard } from "@/components/GameBoard";
 import { GameInfo } from "@/components/GameInfo";
 import { Confetti } from "@/components/Confetti";
+import { GameModeSelector } from "@/components/GameModeSelector";
 
 type Player = "sphere" | "cube" | null;
 
 const Index = () => {
+  const [gameMode, setGameMode] = useState<"friend" | "computer" | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState<Player>("sphere");
   const [winner, setWinner] = useState<Player>(null);
   const [isTie, setIsTie] = useState(false);
@@ -18,20 +20,37 @@ const Index = () => {
     setCurrentPlayer(player);
   };
 
-  const handleRestart = () => {
+    const handleRestart = () => {
     if ((window as any).resetTicTacToe) {
       (window as any).resetTicTacToe();
     }
   };
 
+  const handleSelectMode = (mode: "friend" | "computer") => {
+    setGameMode(mode);
+  };
+
+  const handleChangeMode = () => {
+    setGameMode(null);
+    setWinner(null);
+    setIsTie(false);
+    setCurrentPlayer("sphere");
+  };
+
+  if (!gameMode) {
+    return <GameModeSelector onSelectMode={handleSelectMode} />;
+  }
+
   return (
     <div className="w-full h-screen bg-gradient-to-br from-background via-background to-muted overflow-hidden">
       <Confetti winner={winner} />
-      <GameInfo 
+            <GameInfo 
         currentPlayer={currentPlayer}
         winner={winner}
         isTie={isTie}
         onRestart={handleRestart}
+        gameMode={gameMode}
+        onChangeMode={handleChangeMode}
       />
       
       <Canvas
@@ -43,7 +62,7 @@ const Index = () => {
         <pointLight position={[-5, -5, 5]} intensity={0.5} color="#00d9ff" />
         <pointLight position={[5, -5, 5]} intensity={0.5} color="#ff006e" />
         
-        <GameBoard onGameStateChange={handleGameStateChange} />
+        <GameBoard onGameStateChange={handleGameStateChange} gameMode={gameMode} />
         
         <OrbitControls 
           enableZoom={true}
