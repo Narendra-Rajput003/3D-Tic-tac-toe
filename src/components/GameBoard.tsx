@@ -74,7 +74,7 @@ export const GameBoard = ({ onGameStateChange, gameMode }: GameBoardProps) => {
     if (gameMode === "computer" && currentPlayer === "cube" && !winner && !isAiThinking) {
       setIsAiThinking(true);
       
-      // Add delay to make it feel more natural
+            // Add slight delay to make it feel more natural
       const delay = setTimeout(() => {
         if (aiPlayerRef.current) {
           const bestMove = aiPlayerRef.current.getBestMove(board, "medium");
@@ -83,7 +83,7 @@ export const GameBoard = ({ onGameStateChange, gameMode }: GameBoardProps) => {
           }
         }
         setIsAiThinking(false);
-      }, 800); // 800ms delay for AI thinking
+      }, 300); // 300ms delay for AI thinking
 
       return () => clearTimeout(delay);
     }
