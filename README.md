@@ -82,8 +82,8 @@ This project is built with modern web technologies:
 
 1. **Clone the repository**
    ```bash
-   git clone <YOUR_GIT_URL>
-   cd 3d-tic-tac-toe
+   git clone https://github.com/Narendra-Rajput003/3D-Tic-tac-toe.git
+   cd 3D-Tic-tac-toe
    ```
 
 2. **Install dependencies**
@@ -114,12 +114,27 @@ This project is built with modern web technologies:
 
 ## 🎮 How to Play
 
-1. **Start the Game**: The game begins with Player 1 (Sphere/O)
+### Game Modes
+
+**Play with Friend** 👥
+- Two players take turns on the same device
+- Player 1 plays as Sphere (🔵)
+- Player 2 plays as Cube (🟥)
+
+**Play with Computer** 🤖
+- Play against an AI opponent
+- You play as Sphere (🔵)
+- Computer plays as Cube (🟥)
+- AI uses minimax algorithm for smart moves
+
+### How to Play
+
+1. **Choose Game Mode**: Select "Play with Friend" or "Play with Computer"
 2. **Make Your Move**: Click on any empty cell in the 3D grid
-3. **Take Turns**: Players alternate between Sphere (O) and Cube (X)
+3. **Take Turns**: Players/AI alternate between Sphere and Cube
 4. **Win the Game**: Get three in a row horizontally, vertically, or diagonally
 5. **Rotate & Zoom**: Use your mouse to rotate the board and scroll to zoom
-6. **Play Again**: Click the "New Game" button to restart
+6. **Play Again**: Click "Play Again" or "Change Mode" after game ends
 
 ## 🚀 Deployment
 
