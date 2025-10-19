@@ -1,0 +1,148 @@
+import { useState } from "react";
+import { GridLine } from "./GridLine";
+import { SphereMesh } from "./SphereMesh";
+import { CubeMesh } from "./CubeMesh";
+import { WinnerLine } from "./WinnerLine";
+import { ThreeEvent } from "@react-three/fiber";
+
+type Player = "sphere" | "cube" | null;
+type Board = Player[][];
+
+interface GameBoardProps {
+  onGameStateChange: (winner: Player, isTie: boolean, currentPlayer: Player) => void;
+}
+
+export const GameBoard = ({ onGameStateChange }: GameBoardProps) => {
+  const [board, setBoard] = useState<Board>([
+    [null, null, null],
+    [null, null, null],
+    [null, null, null],
+  ]);
+  const [currentPlayer, setCurrentPlayer] = useState<"sphere" | "cube">("sphere");
+  const [winner, setWinner] = useState<Player>(null);
+  const [winnerLine, setWinnerLine] = useState<{ start: [number, number, number]; end: [number, number, number] } | null>(null);
+
+  const checkWinner = (newBoard: Board): Player => {
+    // Check rows
+    for (let i = 0; i < 3; i++) {
+      if (newBoard[i][0] && newBoard[i][0] === newBoard[i][1] && newBoard[i][0] === newBoard[i][2]) {
+        const y = (1 - i) * 1;
+        setWinnerLine({ start: [-1.2, y, 0], end: [1.2, y, 0] });
+        return newBoard[i][0];
+      }
+    }
+
+    // Check columns
+    for (let j = 0; j < 3; j++) {
+      if (newBoard[0][j] && newBoard[0][j] === newBoard[1][j] && newBoard[0][j] === newBoard[2][j]) {
+        const x = (j - 1) * 1;
+        setWinnerLine({ start: [x, 1.2, 0], end: [x, -1.2, 0] });
+        return newBoard[0][j];
+      }
+    }
+
+    // Check diagonals
+    if (newBoard[0][0] && newBoard[0][0] === newBoard[1][1] && newBoard[0][0] === newBoard[2][2]) {
+      setWinnerLine({ start: [-1.2, 1.2, 0], end: [1.2, -1.2, 0] });
+      return newBoard[0][0];
+    }
+    if (newBoard[0][2] && newBoard[0][2] === newBoard[1][1] && newBoard[0][2] === newBoard[2][0]) {
+      setWinnerLine({ start: [1.2, 1.2, 0], end: [-1.2, -1.2, 0] });
+      return newBoard[0][2];
+    }
+
+    return null;
+  };
+
+  const checkTie = (newBoard: Board): boolean => {
+    return newBoard.every(row => row.every(cell => cell !== null));
+  };
+
+  const handleClick = (event: ThreeEvent<MouseEvent>, row: number, col: number) => {
+    event.stopPropagation();
+    
+    if (winner || board[row][col]) return;
+
+    const newBoard = board.map(r => [...r]);
+    newBoard[row][col] = currentPlayer;
+    setBoard(newBoard);
+
+    const gameWinner = checkWinner(newBoard);
+    const isTie = !gameWinner && checkTie(newBoard);
+
+    if (gameWinner) {
+      setWinner(gameWinner);
+      onGameStateChange(gameWinner, false, currentPlayer);
+    } else if (isTie) {
+      onGameStateChange(null, true, currentPlayer);
+    } else {
+      const nextPlayer = currentPlayer === "sphere" ? "cube" : "sphere";
+      setCurrentPlayer(nextPlayer);
+      onGameStateChange(null, false, nextPlayer);
+    }
+  };
+
+  const resetGame = () => {
+    setBoard([
+      [null, null, null],
+      [null, null, null],
+      [null, null, null],
+    ]);
+    setCurrentPlayer("sphere");
+    setWinner(null);
+    setWinnerLine(null);
+    onGameStateChange(null, false, "sphere");
+  };
+
+  // Expose reset function
+  (window as any).resetTicTacToe = resetGame;
+
+  const renderShape = (player: Player, row: number, col: number) => {
+    const x = (col - 1) * 1;
+    const y = (1 - row) * 1;
+    const position: [number, number, number] = [x, y, 0];
+
+    if (player === "sphere") {
+      return <SphereMesh key={`${row}-${col}`} position={position} />;
+    } else if (player === "cube") {
+      return <CubeMesh key={`${row}-${col}`} position={position} />;
+    }
+    return null;
+  };
+
+  return (
+    <>
+      {/* Grid Lines */}
+      <GridLine start={[-0.5, -1.5, 0]} end={[-0.5, 1.5, 0]} />
+      <GridLine start={[0.5, -1.5, 0]} end={[0.5, 1.5, 0]} />
+      <GridLine start={[-1.5, -0.5, 0]} end={[1.5, -0.5, 0]} />
+      <GridLine start={[-1.5, 0.5, 0]} end={[1.5, 0.5, 0]} />
+
+      {/* Clickable Grid Cells */}
+      {[0, 1, 2].map((row) =>
+        [0, 1, 2].map((col) => {
+          const x = (col - 1) * 1;
+          const y = (1 - row) * 1;
+          return (
+            <mesh
+              key={`${row}-${col}`}
+              position={[x, y, -0.1]}
+              onClick={(e) => handleClick(e, row, col)}
+            >
+              <planeGeometry args={[0.9, 0.9]} />
+              <meshBasicMaterial transparent opacity={0} />
+            </mesh>
+          );
+        })
+      )}
+
+      {/* Render Shapes */}
+      {board.map((row, rowIndex) =>
+        row.map((cell, colIndex) => renderShape(cell, rowIndex, colIndex))
+      )}
+
+      {/* Winner Line */}
+      {winnerLine && <WinnerLine start={winnerLine.start} end={winnerLine.end} />}
+    </>
+  );
+};
