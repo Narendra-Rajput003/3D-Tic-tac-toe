@@ -1,4 +1,5 @@
 import { Button } from "./ui/button";
+import { useEffect, useState } from "react";
 
 type Player = "sphere" | "cube" | null;
 
@@ -10,6 +11,14 @@ interface GameInfoProps {
 }
 
 export const GameInfo = ({ currentPlayer, winner, isTie, onRestart }: GameInfoProps) => {
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    setVisible(false);
+    const timer = setTimeout(() => setVisible(true), 50);
+    return () => clearTimeout(timer);
+  }, [currentPlayer, winner, isTie]);
+
   const getStatusText = () => {
     if (winner) {
       return winner === "sphere" ? "🔵 Sphere Wins!" : "🟥 Cube Wins!";
@@ -27,10 +36,16 @@ export const GameInfo = ({ currentPlayer, winner, isTie, onRestart }: GameInfoPr
     return currentPlayer === "sphere" ? "text-primary" : "text-secondary";
   };
 
+  const getAnimation = () => {
+    if (winner) return "animate-[bounce_0.5s_ease-in-out_3]";
+    if (isTie) return "animate-[pulse_1s_ease-in-out_infinite]";
+    return "";
+  };
+
   return (
     <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-10 flex flex-col items-center gap-4">
-      <div className="backdrop-blur-md bg-card/80 border border-border rounded-lg px-8 py-4 shadow-xl">
-        <h1 className={`text-3xl font-bold ${getStatusColor()} transition-colors duration-300`}>
+      <div className={`backdrop-blur-md bg-card/80 border border-border rounded-lg px-8 py-4 shadow-xl transition-all duration-300 ${visible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+        <h1 className={`text-3xl font-bold ${getStatusColor()} transition-colors duration-300 ${getAnimation()}`}>
           {getStatusText()}
         </h1>
       </div>
@@ -39,7 +54,7 @@ export const GameInfo = ({ currentPlayer, winner, isTie, onRestart }: GameInfoPr
         <Button 
           onClick={onRestart}
           size="lg"
-          className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all duration-300"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all duration-300 animate-fade-in hover:scale-105"
         >
           Play Again
         </Button>

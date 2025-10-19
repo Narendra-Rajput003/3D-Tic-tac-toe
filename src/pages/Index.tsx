@@ -3,6 +3,7 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment } from "@react-three/drei";
 import { GameBoard } from "@/components/GameBoard";
 import { GameInfo } from "@/components/GameInfo";
+import { Confetti } from "@/components/Confetti";
 
 type Player = "sphere" | "cube" | null;
 
@@ -25,6 +26,7 @@ const Index = () => {
 
   return (
     <div className="w-full h-screen bg-gradient-to-br from-background via-background to-muted overflow-hidden">
+      <Confetti winner={winner} />
       <GameInfo 
         currentPlayer={currentPlayer}
         winner={winner}

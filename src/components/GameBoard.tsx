@@ -97,15 +97,47 @@ export const GameBoard = ({ onGameStateChange }: GameBoardProps) => {
   // Expose reset function
   (window as any).resetTicTacToe = resetGame;
 
+  const isWinningCell = (row: number, col: number): boolean => {
+    if (!winner || !winnerLine) return false;
+    
+    // Check if this cell is part of the winning combination
+    // by checking all possible winning combinations
+    const winningCombinations = [
+      // Rows
+      [[0,0], [0,1], [0,2]],
+      [[1,0], [1,1], [1,2]],
+      [[2,0], [2,1], [2,2]],
+      // Columns
+      [[0,0], [1,0], [2,0]],
+      [[0,1], [1,1], [2,1]],
+      [[0,2], [1,2], [2,2]],
+      // Diagonals
+      [[0,0], [1,1], [2,2]],
+      [[0,2], [1,1], [2,0]],
+    ];
+
+    for (const combo of winningCombinations) {
+      const isWinningCombo = combo.every(([r, c]) => board[r][c] === winner);
+      if (isWinningCombo && combo.some(([r, c]) => r === row && c === col)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const isTieGame = !winner && board.every(row => row.every(cell => cell !== null));
+
   const renderShape = (player: Player, row: number, col: number) => {
     const x = (col - 1) * 1;
     const y = (1 - row) * 1;
     const position: [number, number, number] = [x, y, 0];
+    const isWinner = isWinningCell(row, col);
+    const isTie = isTieGame && !winner;
 
     if (player === "sphere") {
-      return <SphereMesh key={`${row}-${col}`} position={position} />;
+      return <SphereMesh key={`${row}-${col}`} position={position} isWinner={isWinner} isTie={isTie} />;
     } else if (player === "cube") {
-      return <CubeMesh key={`${row}-${col}`} position={position} />;
+      return <CubeMesh key={`${row}-${col}`} position={position} isWinner={isWinner} isTie={isTie} />;
     }
     return null;
   };
