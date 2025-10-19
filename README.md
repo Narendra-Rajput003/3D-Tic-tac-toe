@@ -38,7 +38,7 @@
 
 ## 🎬 Demo
 
-[Live Demo](https://your-deployment-url.vercel.app) *(Will be available after deployment)*
+[Live Demo](https://3d-tic-tac-toe-game.vercel.app) *(Will be available after deployment)*
 
 ### Screenshots
 
